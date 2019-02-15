@@ -1,0 +1,30 @@
+from celery import Celery
+
+try:
+    from eleanor.settings import CELERY_BROKER_URL, CELERY_RESULT_BACKEND
+except ImportError:
+    from eleanor.default_settings import CELERY_BROKER_URL, \
+        CELERY_RESULT_BACKEND
+
+
+celery = Celery(
+    'eleanor',
+    broker=CELERY_BROKER_URL,
+    backend=CELERY_RESULT_BACKEND
+)
+
+
+def set_celery(app):
+    cel = celery
+    cel.conf.update(app.config)
+    cel.conf.update(CELERY_ACCEPT_CONTENT=['json'])
+    TaskBase = cel.Task
+
+    class ContextTask(TaskBase):
+        abstract = True
+
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+    cel.Task = ContextTask
+    return cel
