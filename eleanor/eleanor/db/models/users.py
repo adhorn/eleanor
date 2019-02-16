@@ -4,7 +4,7 @@ from itsdangerous import (TimedJSONWebSignatureSerializer
 from datetime import datetime
 from flask import current_app
 from eleanor.db import db
-from eleanor.utils.util import generate_uuid
+# from eleanor.utils.util import generate_uuid
 from passlib.context import CryptContext
 
 
@@ -22,7 +22,7 @@ class UserModel(db.Model):
     password_hash = db.Column(db.String(128))
 
     def __init__(self, **kwargs):
-        self.id = generate_uuid()
+        # self.id = generate_uuid()
         self.timestamp = datetime.utcnow()
         super(UserModel, self).__init__(**kwargs)
 

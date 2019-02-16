@@ -22,7 +22,6 @@ def create_app(config_module=None):
     with app.app_context():
         app.logger.debug("Initializing the Database")
         db.engine.pool._use_threadlocal = True
-
     app.register_blueprint(task_api, url_prefix=URL_PREFIX_VERSION)
     app.register_blueprint(users_auth_api, url_prefix=URL_PREFIX_VERSION)
     app.logger.info("Flask App Ready To Go")

@@ -31,7 +31,11 @@ def configure_logging(app):
         file_handler.setFormatter(Formatter(
             '%(asctime)s %(levelname)s: %(message)s '
         ))
-        app.logger.setLevel(logging.INFO)
-        file_handler.setLevel(logging.INFO)
+        if app.config['DEBUG'] is True:
+            app.logger.setLevel(logging.DEBUG)
+            file_handler.setLevel(logging.DEBUG)
+        else:
+            app.logger.setLevel(logging.INFO)
+            file_handler.setLevel(logging.INFO)
         app.logger.addHandler(file_handler)
         app.logger.info('eleanor startup')

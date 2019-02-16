@@ -8,7 +8,7 @@ eleanor-api:
   links:
     - mysql
     - redis
-  command: /usr/local/bin/gunicorn -w 1 -b 0.0.0.0:5000 -k gevent eleanor.eleanor:app --reload 
+  command: /usr/local/bin/gunicorn -w 1 -b 0.0.0.0:5000 -k gevent eleanor.eleanor:app --reload
 
 eleanor-tasks:
   restart: always

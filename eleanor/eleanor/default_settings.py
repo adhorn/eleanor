@@ -16,7 +16,7 @@ JSONIFY_PRETTYPRINT_REGULAR = True
 
 ERROR_404_HELP = False
 
-ERROR_TO_FILE = True
+ERROR_TO_FILE = False
 ERROR_LOG_NAME = 'logs/errors.log'
 
 

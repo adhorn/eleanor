@@ -4,7 +4,6 @@ RUN mkdir -p /opt/eleanor
 RUN mkdir -p /opt/tasks
 RUN mkdir -p /tmp/xyz
 
-# Install software 
 RUN apt-get update && apt-get install -y \
     build-essential \
     libssl-dev \
@@ -22,16 +21,15 @@ RUN apt-get update && apt-get install -y \
     wget \
     dialog \
     net-tools \
-    python \
-    python-dev \
     python-distribute \
     python-psycopg2 \
-    python-pip
-
+    python3 \
+    python3-dev \
+    python3-pip
 
 ADD requirements.txt  /opt/eleanor/requirements.txt
 
-RUN pip install -r /opt/eleanor/requirements.txt
+RUN pip3 install -r /opt/eleanor/requirements.txt
 
 COPY . /opt/eleanor
 
