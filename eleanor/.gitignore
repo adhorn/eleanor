@@ -1,6 +1,8 @@
 #local settings
 local_settings.py
 SETUP.txt
+.DS_Store
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
