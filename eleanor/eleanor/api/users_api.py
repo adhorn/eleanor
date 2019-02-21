@@ -4,7 +4,6 @@ from flask_restful import Api, Resource
 from eleanor.db import db
 from eleanor.db.models.users import UserModel
 from eleanor.utils.api_utils import json_response
-from eleanor.utils.util import generate_uuid
 
 
 users_auth_api = Blueprint('users_auth_api', __name__)
@@ -25,7 +24,7 @@ class User(Resource):
                 "password": "password",
                 "phone": "+358456121314"
             }'
-            http://localhost/api/v1.0/user?key=foobar123
+            http://localhost/api/user?key=foobar123
     """
 
     def post(self):
@@ -39,31 +38,36 @@ class User(Resource):
         userdata = dict(
             username=username,
             password=password,
-            phone=phone,
-            id=generate_uuid()
+            phone=phone
         )
 
         user = UserModel(
             username=userdata["username"],
-            phone=userdata["phone"],
-            id=userdata["id"]
+            phone=userdata["phone"]
         )
         user.hash_password(userdata["password"])
+        user_id = user.id
 
         db.session.add(user)
         db.session.commit()
 
         return {
             "status": "success",
-            "client_id": userdata["id"]
+            "client_id": user_id
         }
         # return {
         #     "status": "success",
         #     "client_id": user.id
         # }
 
+    def get(self, user_id):
+        user = UserModel.query.get(user_id)
+        return user.to_json()
+
 
 api.add_resource(
     User,
-    '/user'
+    '/user',
+    '/user/<string:user_id>'
+
 )

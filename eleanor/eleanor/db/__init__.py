@@ -55,6 +55,18 @@ class RoutingSession(orm.Session):
         s._name = name
         return s
 
+        # # the read/write bind interface fails to intercept update function
+        # # to be executed on the master - now it is forced upon the master.
+        # db.session.using_bind("master").query(
+        #     FooModel).filter(FooModel.id == id).update(
+        #     {
+        #         FooModel.count: FooModel.count + 1,
+        #         FooModel.updated: _foobar_timestamp
+        #     }
+        # )
+        # db.session.commit()
+        # db.session.flush()
+
 
 class RouteSQLAlchemy(SQLAlchemy):
 
@@ -69,5 +81,6 @@ class RouteSQLAlchemy(SQLAlchemy):
         return orm.scoped_session(
             partial(RoutingSession, self, **options), scopefunc=scopefunc
         )
+
 
 db = RouteSQLAlchemy()

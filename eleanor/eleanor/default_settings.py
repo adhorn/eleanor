@@ -44,7 +44,7 @@ SQLALCHEMY_DATABASE_URI = 'mysql://eleanordbuser:foobar123@mysql/eleanordb'
 
 SQLALCHEMY_BINDS = {
     'master': 'mysql://eleanordbuser:foobar123@mysql/eleanordb',
-    'slave': 'mysql://eleanordbuser:foobar123@mysql/eleanordb'
+    'slave': 'mysql://eleanordbuser:foobar123@mysql-read/eleanordb'
 }
 
 SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
@@ -54,6 +54,7 @@ SQLALCHEMY_RECORD_QUERIES = True
 DATABASE_QUERY_TIMEOUT = 0.4
 SQLALCHEMY_POOL_SIZE = 20
 SQLALCHEMY_MAX_OVERFLOW = 20
+SQLALCHEMY_POOL_TIMEOUT = 5
 
 
 DROP_BEFORE_CREATE = True
