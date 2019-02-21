@@ -7,10 +7,10 @@ import random
 @ce.task(bind=True)
 def add(self, x, y):
     try:
-        1 / random.randrange(2)
+        1 / random.randrange(0)
         current_app.logger.debug(
             "Task: Test with {0} and {1} ".format(x, y))
-        # return x + y
+        return x + y
     except Exception as exc:
         self.retry(
             exc=exc,
