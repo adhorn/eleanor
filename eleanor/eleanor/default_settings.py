@@ -40,11 +40,11 @@ BROKER_CONNECTION_MAX_RETRIES = 0
 BROKER_FAILOVER_STRATEGY = "round-robin"
 BROKER_HEARTBEAT = 10
 
-SQLALCHEMY_DATABASE_URI = 'mysql://eleanordbuser:foobar123@mysql/eleanordb'
+SQLALCHEMY_DATABASE_URI = 'mysql://root:master_passw0rd@master/mysql'
 
 SQLALCHEMY_BINDS = {
-    'master': 'mysql://eleanordbuser:foobar123@mysql/eleanordb',
-    'slave': 'mysql://eleanordbuser:foobar123@mysql-read/eleanordb'
+    'master': 'mysql://root:master_passw0rd@master/mysql',
+    'slave': 'mysql://root:slave_passw0rd@slave/mysql'
 }
 
 SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
@@ -57,4 +57,4 @@ SQLALCHEMY_MAX_OVERFLOW = 20
 SQLALCHEMY_POOL_TIMEOUT = 5
 
 
-DROP_BEFORE_CREATE = True
+DROP_BEFORE_CREATE = False
