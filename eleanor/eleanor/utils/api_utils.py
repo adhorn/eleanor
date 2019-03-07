@@ -1,4 +1,4 @@
-from flask import current_app, g, request, jsonify
+from flask import current_app, jsonify
 from functools import wraps
 import json
 from datetime import datetime
@@ -7,7 +7,12 @@ from eleanor.celery import tasks
 
 def api_error_response(code=404, message="Resource not found", errors=list()):
     response = jsonify(
-        dict(code=code, message=message, errors=errors, success=False))
+        dict(
+            code=code,
+            message=message,
+            errors=errors
+        )
+    )
     response.status_code = code
     return response
 

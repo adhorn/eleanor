@@ -3,7 +3,6 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 VERSION = '0.1'
 URL_PREFIX_VERSION = '/api'
-SECRET_KEY = '\x1d\xf9\x92\xd7|$\xd3\xe6*\xf3\xb3\x05\x1c\xd0\xc82\xcePh\x04\x97Gj\x9d'
 
 HOST = 'localhost'
 PORT = 5555
@@ -19,6 +18,7 @@ ERROR_404_HELP = False
 ERROR_TO_FILE = False
 ERROR_LOG_NAME = 'logs/errors.log'
 
+REDIS_URL = 'rediscache'
 
 CELERY_BROKER_URL = ['redis://redis:6379/0']
 CELERY_RESULT_BACKEND = 'redis://redis:6379'

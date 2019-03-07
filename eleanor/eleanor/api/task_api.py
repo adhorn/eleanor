@@ -28,22 +28,53 @@ class AddTask(Resource):
     def put(self):
         current_app.logger.info("Calling Add")
 
-        # Task_ID = tasks.add.delay(10, 30)
         Task_ID = tasks.add.apply_async(
             [10, 30],
         )
 
         return {
-            "Status": "Up and running!",
             "Task ID": Task_ID.task_id
         }
 
     def get(self, task_id):
-        current_app.logger.info("Calling Echo")
+        current_app.logger.info("Calling Get Task ID")
 
         return {
-            "Status": "Up and running!",
-            "Task ID": tasks.get_task(task_id)
+            "{}".format(task_id): tasks.get_task(task_id)
+        }
+
+
+class AddTaskRetry(Resource):
+    method_decorators = [
+        json_response
+    ]
+
+    def put(self):
+        current_app.logger.info("Calling Add")
+
+        Task_ID = tasks.add_retry.apply_async(
+            [10, 30],
+        )
+
+        return {
+            "Task ID": Task_ID.task_id
+        }
+
+
+class AddTaskExpo(Resource):
+    method_decorators = [
+        json_response
+    ]
+
+    def put(self):
+        current_app.logger.info("Calling Add")
+
+        Task_ID = tasks.add_expo.apply_async(
+            [10, 30],
+        )
+
+        return {
+            "Task ID": Task_ID.task_id
         }
 
 
@@ -52,8 +83,18 @@ api.add_resource(
     '/echo'
 )
 
-
 api.add_resource(
     AddTask,
     '/task',
     '/task/<string:task_id>')
+
+
+api.add_resource(
+    AddTaskRetry,
+    '/taskretry')
+
+
+api.add_resource(
+    AddTaskExpo,
+    '/taskexpo')
+

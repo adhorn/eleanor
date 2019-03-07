@@ -9,7 +9,8 @@ eleanor-api:
     - master
     - slave
     - redis
-  command: /usr/local/bin/gunicorn -w 4 -b 0.0.0.0:5000 -k gevent eleanor.eleanor:app --reload
+    - rediscache
+  command: /usr/local/bin/gunicorn -w 1 -b 0.0.0.0:5000 -k gevent eleanor.eleanor:app --reload
 
 eleanor-tasks:
   restart: always
@@ -22,6 +23,7 @@ eleanor-tasks:
     - master
     - slave
     - redis
+    - rediscache
   command: /usr/local/bin/celery -A start_celery worker -l debug -P gevent
 
 master:
@@ -59,4 +61,7 @@ slave:
 redis:
   image: redis:latest
 
+
+rediscache:
+  image: redis:latest
 

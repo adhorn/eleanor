@@ -6,7 +6,8 @@ from flask import Flask
 from eleanor.db import db
 from eleanor.utils.util import configure_logging
 from eleanor.api.task_api import task_api
-from eleanor.api.users_api import users_auth_api
+from eleanor.api.echo_api import echo_api
+from eleanor.api.product_api import product_api
 from eleanor.default_settings import URL_PREFIX_VERSION
 from eleanor.celery.extensions import celery
 
@@ -23,7 +24,8 @@ def create_app(config_module=None):
         app.logger.debug("Initializing the Database")
         db.engine.pool._use_threadlocal = True
     app.register_blueprint(task_api, url_prefix=URL_PREFIX_VERSION)
-    app.register_blueprint(users_auth_api, url_prefix=URL_PREFIX_VERSION)
+    app.register_blueprint(echo_api, url_prefix=URL_PREFIX_VERSION)
+    app.register_blueprint(product_api, url_prefix=URL_PREFIX_VERSION)
     app.logger.info("Flask App Ready To Go")
     celery.config_from_object(app.config)
     return app
