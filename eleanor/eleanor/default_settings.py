@@ -15,7 +15,7 @@ JSONIFY_PRETTYPRINT_REGULAR = True
 
 ERROR_404_HELP = False
 
-ERROR_TO_FILE = False
+ERROR_TO_FILE = True
 ERROR_LOG_NAME = 'logs/errors.log'
 
 REDIS_URL = 'rediscache'
@@ -48,7 +48,7 @@ SQLALCHEMY_BINDS = {
 }
 
 SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
-SQLALCHEMY_COMMIT_ON_TEARDOWN = True
+SQLALCHEMY_COMMIT_ON_TEARDOWN = False
 SQLALCHEMY_RECORD_QUERIES = True
 # slow database query threshold (in seconds)
 DATABASE_QUERY_TIMEOUT = 0.4

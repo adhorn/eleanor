@@ -2,6 +2,9 @@ from flask_sqlalchemy import SQLAlchemy, get_state
 import sqlalchemy.orm as orm
 from functools import partial
 from flask import current_app
+# import traceback
+# import sys
+import os
 
 
 class RoutingSession(orm.Session):
@@ -44,8 +47,24 @@ class RoutingSession(orm.Session):
 
         # Everything else goes to the slave
         else:
-            current_app.logger.debug("Connecting -> SLAVE")
-            return state.db.get_engine(self.app, bind='slave')
+            if os.environ.get('MASTER') == 'FORCE':
+                current_app.logger.debug("Forcing -> MASTER")
+                return state.db.get_engine(self.app, bind='master')
+            else:
+                current_app.logger.debug("Connecting -> SLAVE")
+                return state.db.get_engine(self.app, bind='slave')
+
+        # else:
+        #     current_app.logger.debug("Connecting -> SLAVE")
+        #     try:
+        #         st = state.db.get_engine(self.app, bind='slave')
+        #     except Exception:
+        #         traceback.print_exc()
+        #         e = sys.exc_info()[0]
+        #         current_app.logger.debug(
+        #             "cant use SLAVE. trying MASTER again:" + e)
+        #         st = state.db.get_engine(self.app, bind='master')
+        #     return st
 
     _name = None
 
@@ -55,8 +74,6 @@ class RoutingSession(orm.Session):
         s._name = name
         return s
 
-        # # the read/write bind interface fails to intercept update function
-        # # to be executed on the master - now it is forced upon the master.
         # db.session.using_bind("master").query(
         #     FooModel).filter(FooModel.id == id).update(
         #     {
@@ -64,8 +81,6 @@ class RoutingSession(orm.Session):
         #         FooModel.updated: _foobar_timestamp
         #     }
         # )
-        # db.session.commit()
-        # db.session.flush()
 
 
 class RouteSQLAlchemy(SQLAlchemy):

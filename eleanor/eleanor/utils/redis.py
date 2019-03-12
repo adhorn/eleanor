@@ -15,6 +15,10 @@ rs = redis.Redis(
 )
 
 
+def info():
+    return rs.info()
+
+
 def ping():
     return rs.ping()
 
