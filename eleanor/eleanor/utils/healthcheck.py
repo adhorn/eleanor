@@ -63,7 +63,7 @@ class HealthCheck(object):
         success_status=200,
         failed_status=503,
         success_ttl=15,
-        failed_ttl=5,
+        failed_ttl=15,
         success_handler=success_handler,
         failed_handler=failed_handler,
         exception_handler=basic_exception_handler,

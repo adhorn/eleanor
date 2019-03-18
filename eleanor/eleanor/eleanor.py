@@ -12,6 +12,12 @@ from eleanor.default_settings import URL_PREFIX_VERSION
 from eleanor.celery.extensions import celery
 
 
+try:
+    from eleanor.settings import DROP_BEFORE_CREATE
+except ImportError:
+    from eleanor.default_settings import DROP_BEFORE_CREATE
+
+
 def create_app(config_module=None):
     app = Flask(__name__)
     app.config.from_object('eleanor.default_settings')

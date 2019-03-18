@@ -2,8 +2,6 @@ from flask_sqlalchemy import SQLAlchemy, get_state
 import sqlalchemy.orm as orm
 from functools import partial
 from flask import current_app
-# import traceback
-# import sys
 import os
 
 
@@ -45,8 +43,17 @@ class RoutingSession(orm.Session):
             current_app.logger.debug("Connecting -> MASTER")
             return state.db.get_engine(self.app, bind='master')
 
-        # Everything else goes to the slave
+            '''
+            Reads go to the slave if slave is up
+            or default to master is the slave is down
+            '''
         else:
+            '''
+            after a failed healthcheck of the slave
+            env[MASTER] set to FORCE
+            if healthcheck of the slave is success, env[MASTER] set to NO
+            more info - see echo_api.py
+            '''
             if os.environ.get('MASTER') == 'FORCE':
                 current_app.logger.debug("Forcing -> MASTER")
                 return state.db.get_engine(self.app, bind='master')
@@ -54,17 +61,13 @@ class RoutingSession(orm.Session):
                 current_app.logger.debug("Connecting -> SLAVE")
                 return state.db.get_engine(self.app, bind='slave')
 
-        # else:
-        #     current_app.logger.debug("Connecting -> SLAVE")
-        #     try:
-        #         st = state.db.get_engine(self.app, bind='slave')
-        #     except Exception:
-        #         traceback.print_exc()
-        #         e = sys.exc_info()[0]
-        #         current_app.logger.debug(
-        #             "cant use SLAVE. trying MASTER again:" + e)
-        #         st = state.db.get_engine(self.app, bind='master')
-        #     return st
+            # try:
+            #     current_app.logger.info("Connecting -> SLAVE")
+            #     raise
+            #     return state.db.get_engine(self.app, bind='slave')
+            # except Exception:
+            #     current_app.logger.info("Falling back -> MASTER")
+            #     return state.db.get_engine(self.app, bind='master')
 
     _name = None
 
@@ -74,13 +77,7 @@ class RoutingSession(orm.Session):
         s._name = name
         return s
 
-        # db.session.using_bind("master").query(
-        #     FooModel).filter(FooModel.id == id).update(
-        #     {
-        #         FooModel.count: FooModel.count + 1,
-        #         FooModel.updated: _foobar_timestamp
-        #     }
-        # )
+        # usage: db.session.using_bind("master").query(ProductModel).all()
 
 
 class RouteSQLAlchemy(SQLAlchemy):
