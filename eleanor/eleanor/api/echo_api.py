@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app
+from flask import Blueprint, current_app, make_response
 from flask_restful import Api, Resource
 from eleanor.utils.api_utils import json_response
 from eleanor.celery import tasks
@@ -6,7 +6,7 @@ from eleanor.db import db
 from eleanor.utils.redis import ping, set_key
 from eleanor.utils.healthcheck import HealthCheck
 from eleanor.db.models.products import ProductModel
-import os
+import json
 
 
 try:
@@ -63,13 +63,19 @@ health = HealthCheck(
 
 
 class HealthCheck(Resource):
+
     def get(self):
-        he = health.check()
-        if "OperationalError" in str(he):
+        message, status = health.check()
+        print("----------")
+        print(message)
+        print(status)
+        print("----------")
+        if "OperationalError" in str(message):
             set_key('MASTER', 'FORCE')
         else:
             set_key('MASTER', 'NO')
-        return he
+        headers = [('Retry-After', '30')]
+        return make_response(json.dumps(message), status, headers)
 
 
 api.add_resource(Echo, '/echo')

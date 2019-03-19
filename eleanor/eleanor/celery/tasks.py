@@ -3,6 +3,8 @@ from eleanor.celery.extensions import celery as ce
 from celery.result import AsyncResult
 from celery.task.control import ping
 import random
+import sys
+import traceback
 
 
 @ce.task(bind=True)
@@ -46,7 +48,7 @@ def add_expo(self, x, y):
 
 def get_task(task_id):
     r = AsyncResult(task_id, app=ce)
-    return r.state, r.result
+    return r.state, str(r.result)
 
 
 def get_ping():

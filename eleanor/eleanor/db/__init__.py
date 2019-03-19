@@ -50,11 +50,14 @@ class RoutingSession(orm.Session):
         else:
             '''
             after a failed healthcheck of the slave
-            env[MASTER] set to FORCE
-            if healthcheck of the slave is success, env[MASTER] set to NO
+            cache key [MASTER] set to FORCE
+            if healthcheck of the slave is success,
+            cache key [MASTER] set to NO
             more info - see echo_api.py
             '''
-            current_app.logger.debug("CACHE MASTER ==== {} ".format(get_key('MASTER')))
+            current_app.logger.debug(
+                "CACHE MASTER ==== {} ".format(get_key('MASTER')))
+
             if get_key('MASTER') == b'FORCE':
                 current_app.logger.debug("Forcing -> MASTER")
                 return state.db.get_engine(self.app, bind='master')
