@@ -3,10 +3,11 @@ from flask_restful import Api, Resource
 from eleanor.utils.api_utils import json_response
 from eleanor.celery import tasks
 from eleanor.db import db
-from eleanor.utils.redis import ping
+from eleanor.utils.redis import ping, set_key
 from eleanor.utils.healthcheck import HealthCheck
 from eleanor.db.models.products import ProductModel
 import os
+
 
 try:
     from eleanor.settings import DEBUG
@@ -65,9 +66,9 @@ class HealthCheck(Resource):
     def get(self):
         he = health.check()
         if "OperationalError" in str(he):
-            os.environ['MASTER'] = 'FORCE'
+            set_key('MASTER', 'FORCE')
         else:
-            os.environ['MASTER'] = 'NO'
+            set_key('MASTER', 'NO')
         return he
 
 

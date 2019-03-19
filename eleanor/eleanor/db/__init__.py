@@ -2,7 +2,7 @@ from flask_sqlalchemy import SQLAlchemy, get_state
 import sqlalchemy.orm as orm
 from functools import partial
 from flask import current_app
-import os
+from eleanor.utils.redis import get_key
 
 
 class RoutingSession(orm.Session):
@@ -54,7 +54,8 @@ class RoutingSession(orm.Session):
             if healthcheck of the slave is success, env[MASTER] set to NO
             more info - see echo_api.py
             '''
-            if os.environ.get('MASTER') == 'FORCE':
+            current_app.logger.debug("CACHE MASTER ==== {} ".format(get_key('MASTER')))
+            if get_key('MASTER') == b'FORCE':
                 current_app.logger.debug("Forcing -> MASTER")
                 return state.db.get_engine(self.app, bind='master')
             else:
