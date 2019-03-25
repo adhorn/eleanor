@@ -66,14 +66,19 @@ class HealthCheck(Resource):
 
     def get(self):
         message, status = health.check()
-        print("----------")
-        print(message)
-        print(status)
-        print("----------")
-        if "OperationalError" in str(message):
+
+        check_force = [
+            mess for mess in message['results']
+            if mess["checker"] == 'db_slave_check' and
+            'OperationalError' in str(mess["output"])
+        ]
+        if check_force:
             set_key('MASTER', 'FORCE')
+            current_app.logger.debug("set FORCE MASTER")
         else:
             set_key('MASTER', 'NO')
+            current_app.logger.debug("NO set FORCE MASTER")
+
         headers = [('Retry-After', '30')]
         return make_response(json.dumps(message), status, headers)
 

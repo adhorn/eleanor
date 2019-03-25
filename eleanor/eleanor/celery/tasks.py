@@ -3,8 +3,6 @@ from eleanor.celery.extensions import celery as ce
 from celery.result import AsyncResult
 from celery.task.control import ping
 import random
-import sys
-import traceback
 
 
 @ce.task(bind=True)
@@ -40,7 +38,7 @@ def add_expo(self, x, y):
     except Exception as exc:
         self.retry(
             exc=exc,
-            max_retries=5,
+            max_retries=10,
             countdown=int(
                 random.uniform(2, 4) ** self.request.retries)
         )
