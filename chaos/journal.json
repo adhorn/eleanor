@@ -1,0 +1,376 @@
+{
+  "chaoslib-version": "1.3.0",
+  "platform": "Darwin-16.7.0-x86_64-i386-64bit",
+  "node": "88e9fe4e376c.ant.amazon.com",
+  "experiment": {
+    "version": "1.0.0",
+    "title": "What is the impact of an terminating the database master",
+    "description": "terminating the master database should not prevent the Application from running",
+    "tags": [
+      "db"
+    ],
+    "steady-state-hypothesis": {
+      "title": "Application responds",
+      "probes": [
+        {
+          "type": "probe",
+          "name": "we-can-request-health",
+          "tolerance": 200,
+          "provider": {
+            "type": "http",
+            "timeout": 15,
+            "verify_tls": false,
+            "url": "http://127.0.0.1:80/api/health"
+          }
+        }
+      ]
+    },
+    "method": [
+      {
+        "type": "action",
+        "name": "stop-master-db",
+        "provider": {
+          "type": "process",
+          "path": "docker",
+          "arguments": "ps -qf 'name=master' > pid.info"
+        },
+        "pauses": {
+          "after": 1
+        }
+      },
+      {
+        "type": "action",
+        "name": "stop-master-db",
+        "provider": {
+          "type": "process",
+          "path": "docker",
+          "arguments": "stop $(cat pid.info)"
+        },
+        "pauses": {
+          "after": 10
+        }
+      },
+      {
+        "type": "probe",
+        "name": "read-echo",
+        "provider": {
+          "type": "http",
+          "timeout": 2,
+          "verify_tls": false,
+          "url": "http://127.0.0.1:80/api/echo"
+        },
+        "pauses": {
+          "after": 1
+        }
+      },
+      {
+        "type": "probe",
+        "name": "read-health",
+        "provider": {
+          "type": "http",
+          "timeout": 5,
+          "verify_tls": false,
+          "url": "http://127.0.0.1:80/api/health"
+        },
+        "pauses": {
+          "after": 1
+        }
+      },
+      {
+        "type": "action",
+        "name": "restart-master-db",
+        "provider": {
+          "type": "process",
+          "path": "docker",
+          "arguments": "start $(cat pid.info)"
+        },
+        "pauses": {
+          "after": 10
+        }
+      },
+      {
+        "type": "probe",
+        "name": "read-health",
+        "provider": {
+          "type": "http",
+          "timeout": 2,
+          "verify_tls": false,
+          "url": "http://127.0.0.1:80/api/health"
+        }
+      }
+    ],
+    "rollbacks": [
+      {
+        "type": "action",
+        "name": "restart-master-db",
+        "provider": {
+          "type": "process",
+          "path": "docker",
+          "arguments": "start $(cat pid.info)"
+        }
+      }
+    ],
+    "dry": false
+  },
+  "start": "2019-05-08T14:48:11.646788",
+  "status": "failed",
+  "deviated": true,
+  "steady_states": {
+    "before": {
+      "steady_state_met": true,
+      "probes": [
+        {
+          "activity": {
+            "type": "probe",
+            "name": "we-can-request-health",
+            "tolerance": 200,
+            "provider": {
+              "type": "http",
+              "timeout": 15,
+              "verify_tls": false,
+              "url": "http://127.0.0.1:80/api/health"
+            }
+          },
+          "output": {
+            "status": 200,
+            "headers": {
+              "Server": "nginx/1.15.9",
+              "Date": "Wed, 08 May 2019 14:48:11 GMT",
+              "Content-Type": "text/html; charset=utf-8",
+              "Content-Length": "591",
+              "Connection": "keep-alive",
+              "Retry-After": "30"
+            },
+            "body": "{\"status\": \"success\", \"hostname\": \"172.17.0.7\", \"results\": [{\"timestamp\": 1557326891.6643946, \"checker\": \"db_master_check\", \"passed\": true, \"output\": \"db master ok\", \"expires\": 1557326906.6643946}, {\"timestamp\": 1557326891.7022307, \"checker\": \"db_slave_check\", \"passed\": true, \"output\": \"db slave ok\", \"expires\": 1557326906.7022307}, {\"timestamp\": 1557326891.7039986, \"checker\": \"redis_check\", \"passed\": true, \"output\": \"redis ok\", \"expires\": 1557326906.7039986}, {\"timestamp\": 1557326891.716375, \"checker\": \"task_check\", \"passed\": true, \"output\": \"tasks ok\", \"expires\": 1557326906.716375}]}"
+          },
+          "status": "succeeded",
+          "start": "2019-05-08T14:48:11.649138",
+          "end": "2019-05-08T14:48:11.719017",
+          "duration": 0.069879,
+          "tolerance_met": true
+        }
+      ]
+    },
+    "after": {
+      "steady_state_met": false,
+      "probes": [
+        {
+          "activity": {
+            "type": "probe",
+            "name": "we-can-request-health",
+            "tolerance": 200,
+            "provider": {
+              "type": "http",
+              "timeout": 15,
+              "verify_tls": false,
+              "url": "http://127.0.0.1:80/api/health"
+            }
+          },
+          "output": {
+            "status": 503,
+            "headers": {
+              "Server": "nginx/1.15.9",
+              "Date": "Wed, 08 May 2019 14:48:39 GMT",
+              "Content-Type": "text/html; charset=utf-8",
+              "Content-Length": "621",
+              "Connection": "keep-alive",
+              "Retry-After": "30"
+            },
+            "body": "{\"status\": \"failure\", \"hostname\": \"172.17.0.7\", \"results\": [{\"timestamp\": 1557326907.9196699, \"checker\": \"db_master_check\", \"passed\": false, \"output\": \"<class 'sqlalchemy.exc.OperationalError'>\", \"expires\": 1557326922.9196699}, {\"timestamp\": 1557326907.9485126, \"checker\": \"db_slave_check\", \"passed\": true, \"output\": \"db slave ok\", \"expires\": 1557326922.9485126}, {\"timestamp\": 1557326907.950509, \"checker\": \"redis_check\", \"passed\": true, \"output\": \"redis ok\", \"expires\": 1557326922.950509}, {\"timestamp\": 1557326907.9628332, \"checker\": \"task_check\", \"passed\": true, \"output\": \"tasks ok\", \"expires\": 1557326922.9628332}]}"
+          },
+          "status": "succeeded",
+          "start": "2019-05-08T14:48:39.736634",
+          "end": "2019-05-08T14:48:39.759482",
+          "duration": 0.022848,
+          "tolerance_met": false
+        }
+      ]
+    }
+  },
+  "run": [
+    {
+      "activity": {
+        "type": "action",
+        "name": "stop-master-db",
+        "provider": {
+          "type": "process",
+          "path": "docker",
+          "arguments": "ps -qf 'name=master' > pid.info"
+        },
+        "pauses": {
+          "after": 1
+        }
+      },
+      "output": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "status": "succeeded",
+      "start": "2019-05-08T14:48:11.719762",
+      "end": "2019-05-08T14:48:11.795095",
+      "duration": 0.075333
+    },
+    {
+      "activity": {
+        "type": "action",
+        "name": "stop-master-db",
+        "provider": {
+          "type": "process",
+          "path": "docker",
+          "arguments": "stop $(cat pid.info)"
+        },
+        "pauses": {
+          "after": 10
+        }
+      },
+      "output": {
+        "status": 0,
+        "stdout": "3100bb45f64d\n",
+        "stderr": ""
+      },
+      "status": "succeeded",
+      "start": "2019-05-08T14:48:12.798237",
+      "end": "2019-05-08T14:48:16.857569",
+      "duration": 4.059332
+    },
+    {
+      "activity": {
+        "type": "probe",
+        "name": "read-echo",
+        "provider": {
+          "type": "http",
+          "timeout": 2,
+          "verify_tls": false,
+          "url": "http://127.0.0.1:80/api/echo"
+        },
+        "pauses": {
+          "after": 1
+        }
+      },
+      "output": {
+        "status": 200,
+        "headers": {
+          "Server": "nginx/1.15.9",
+          "Date": "Wed, 08 May 2019 14:48:26 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "31",
+          "Connection": "keep-alive"
+        },
+        "body": {
+          "Status": "Up and running..."
+        }
+      },
+      "status": "succeeded",
+      "start": "2019-05-08T14:48:26.862468",
+      "end": "2019-05-08T14:48:26.874266",
+      "duration": 0.011798
+    },
+    {
+      "activity": {
+        "type": "probe",
+        "name": "read-health",
+        "provider": {
+          "type": "http",
+          "timeout": 5,
+          "verify_tls": false,
+          "url": "http://127.0.0.1:80/api/health"
+        },
+        "pauses": {
+          "after": 1
+        }
+      },
+      "output": {
+        "status": 503,
+        "headers": {
+          "Server": "nginx/1.15.9",
+          "Date": "Wed, 08 May 2019 14:48:27 GMT",
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Length": "621",
+          "Connection": "keep-alive",
+          "Retry-After": "30"
+        },
+        "body": "{\"status\": \"failure\", \"hostname\": \"172.17.0.7\", \"results\": [{\"timestamp\": 1557326907.9196699, \"checker\": \"db_master_check\", \"passed\": false, \"output\": \"<class 'sqlalchemy.exc.OperationalError'>\", \"expires\": 1557326922.9196699}, {\"timestamp\": 1557326907.9485126, \"checker\": \"db_slave_check\", \"passed\": true, \"output\": \"db slave ok\", \"expires\": 1557326922.9485126}, {\"timestamp\": 1557326907.950509, \"checker\": \"redis_check\", \"passed\": true, \"output\": \"redis ok\", \"expires\": 1557326922.950509}, {\"timestamp\": 1557326907.9628332, \"checker\": \"task_check\", \"passed\": true, \"output\": \"tasks ok\", \"expires\": 1557326922.9628332}]}"
+      },
+      "status": "succeeded",
+      "start": "2019-05-08T14:48:27.875081",
+      "end": "2019-05-08T14:48:27.943168",
+      "duration": 0.068087
+    },
+    {
+      "activity": {
+        "type": "action",
+        "name": "restart-master-db",
+        "provider": {
+          "type": "process",
+          "path": "docker",
+          "arguments": "start $(cat pid.info)"
+        },
+        "pauses": {
+          "after": 10
+        }
+      },
+      "output": {
+        "status": 0,
+        "stdout": "3100bb45f64d\n",
+        "stderr": ""
+      },
+      "status": "succeeded",
+      "start": "2019-05-08T14:48:28.947858",
+      "end": "2019-05-08T14:48:29.641298",
+      "duration": 0.69344
+    },
+    {
+      "activity": {
+        "type": "probe",
+        "name": "read-health",
+        "provider": {
+          "type": "http",
+          "timeout": 2,
+          "verify_tls": false,
+          "url": "http://127.0.0.1:80/api/health"
+        }
+      },
+      "output": {
+        "status": 503,
+        "headers": {
+          "Server": "nginx/1.15.9",
+          "Date": "Wed, 08 May 2019 14:48:39 GMT",
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Length": "652",
+          "Connection": "keep-alive",
+          "Retry-After": "30"
+        },
+        "body": "{\"status\": \"failure\", \"hostname\": \"172.17.0.7\", \"results\": [{\"timestamp\": 1557326919.6720226, \"checker\": \"db_master_check\", \"passed\": false, \"output\": \"<class 'sqlalchemy.exc.OperationalError'>\", \"expires\": 1557326934.6720226}, {\"timestamp\": 1557326919.7081375, \"checker\": \"db_slave_check\", \"passed\": false, \"output\": \"<class 'sqlalchemy.exc.OperationalError'>\", \"expires\": 1557326934.7081375}, {\"timestamp\": 1557326919.7102852, \"checker\": \"redis_check\", \"passed\": true, \"output\": \"redis ok\", \"expires\": 1557326934.7102852}, {\"timestamp\": 1557326919.727129, \"checker\": \"task_check\", \"passed\": true, \"output\": \"tasks ok\", \"expires\": 1557326934.727129}]}"
+      },
+      "status": "succeeded",
+      "start": "2019-05-08T14:48:39.644548",
+      "end": "2019-05-08T14:48:39.736040",
+      "duration": 0.091492
+    }
+  ],
+  "rollbacks": [
+    {
+      "activity": {
+        "type": "action",
+        "name": "restart-master-db",
+        "provider": {
+          "type": "process",
+          "path": "docker",
+          "arguments": "start $(cat pid.info)"
+        }
+      },
+      "output": {
+        "status": 0,
+        "stdout": "3100bb45f64d\n",
+        "stderr": ""
+      },
+      "status": "succeeded",
+      "start": "2019-05-08T14:48:39.760394",
+      "end": "2019-05-08T14:48:39.835719",
+      "duration": 0.075325
+    }
+  ],
+  "end": "2019-05-08T14:48:39.835991",
+  "duration": 28.223217010498047
+}

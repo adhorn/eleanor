@@ -8,7 +8,7 @@ eleanor-api:
     - slave
     - redis
     - rediscache
-  command: /usr/local/bin/gunicorn -w 1 -b 0.0.0.0:5000 -k gevent eleanor.eleanor:app --reload
+  command: /usr/local/bin/gunicorn -w 6 -b 0.0.0.0:5000 -k gevent eleanor.eleanor:app --reload --worker-connections 2000
   ports:
     - 5000:5000
 

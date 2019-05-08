@@ -1,0 +1,106 @@
+{
+    "version": "1.0.0",
+    "title": "What is the impact of an terminating the database master",
+    "description": "terminating the master database should not prevent the Application from running",
+    "tags": ["db"],
+    "steady-state-hypothesis": {
+        "title": "Application responds",
+        "probes": [
+            {
+                "type": "probe",
+                "name": "we-can-request-health",
+                "tolerance": 200,
+                "provider": {
+                    "type": "http",
+                    "timeout": 15,
+                    "verify_tls": false,
+                    "url": "http://127.0.0.1:80/api/health"
+                }
+            }
+        ]
+    },
+    "method": [
+        {
+            "type": "action",
+            "name": "stop-master-db",
+            "provider": {
+                "type": "process",
+                "path": "docker",
+                "arguments": "ps -qf 'name=master' > pid.info"
+            },
+           "pauses": {
+                "after": 1
+            }
+        },        {
+            "type": "action",
+            "name": "stop-master-db",
+            "provider": {
+                "type": "process",
+                "path": "docker",
+                "arguments": "stop $(cat pid.info)"
+            },
+           "pauses": {
+                "after": 10
+            }
+        },     
+        {
+            "type": "probe",
+            "name": "read-echo",
+            "provider": {
+                    "type": "http",
+                    "timeout": 2,
+                    "verify_tls": false,
+                    "url": "http://127.0.0.1:80/api/echo"
+            },
+           "pauses": {
+                "after": 1
+            }
+        },
+        {
+            "type": "probe",
+            "name": "read-health",
+            "provider": {
+                    "type": "http",
+                    "timeout": 5,
+                    "verify_tls": false,
+                    "url": "http://127.0.0.1:80/api/health"
+            },
+           "pauses": {
+                "after": 1
+            }
+        },
+        {
+            "type": "action",
+            "name": "restart-master-db",
+            "provider": {
+                "type": "process",
+                "path": "docker",
+                "arguments": "start $(cat pid.info)"
+            },
+           "pauses": {
+                "after": 10
+            }
+        },
+        {
+            "type": "probe",
+            "name": "read-health",
+            "provider": {
+                    "type": "http",
+                    "timeout": 2,
+                    "verify_tls": false,
+                    "url": "http://127.0.0.1:80/api/health"
+            }
+        }
+    ],
+    "rollbacks": [
+        {
+            "type": "action",
+            "name": "restart-master-db",
+            "provider": {
+                "type": "process",
+                "path": "docker",
+                "arguments": "start $(cat pid.info)"
+            }
+        }
+    ]
+}

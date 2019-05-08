@@ -9,12 +9,6 @@ from eleanor.db.models.products import ProductModel
 import json
 
 
-try:
-    from eleanor.settings import DEBUG
-except ImportError:
-    from eleanor.default_settings import DEBUG
-
-
 echo_api = Blueprint('echo_api', __name__)
 api = Api(echo_api, catch_all_404s=True)
 
@@ -25,9 +19,9 @@ class Echo(Resource):
     ]
 
     def get(self):
-        current_app.logger.info("Calling Echo")
+        # current_app.logger.info("Calling Echo")
         return {
-            "Status": "Up and running!"
+            "Status": "Up and running..."
         }
 
 
@@ -76,7 +70,7 @@ class HealthCheck(Resource):
             set_key('MASTER', 'FORCE')
             current_app.logger.debug("set FORCE MASTER")
         else:
-            set_key('MASTER', 'NO')
+            set_key('MASTER', 'NO FORCE')
             current_app.logger.debug("NO set FORCE MASTER")
 
         headers = [('Retry-After', '30')]
@@ -84,4 +78,5 @@ class HealthCheck(Resource):
 
 
 api.add_resource(Echo, '/echo')
+
 api.add_resource(HealthCheck, '/health')

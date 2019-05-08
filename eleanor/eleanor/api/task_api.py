@@ -79,11 +79,6 @@ class AddTaskExpo(Resource):
 
 
 api.add_resource(
-    Echo,
-    '/echo'
-)
-
-api.add_resource(
     AddTask,
     '/task',
     '/task/<string:task_id>')
