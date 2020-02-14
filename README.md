@@ -10,7 +10,7 @@ Eleanor-Project is a set of project used to run and demo Eleanor
 
 `/chaos` contains an example chaos experiment using ChaosToolkit
 
-`/mysql-replica` is a fork of `https://github.com/twang2218/mysql-replica` 
+`/mysql-replica` is a fork of `https://github.com/twang2218/mysql-replica`  (You have to create it yourself!)
 
 
 **Prerequisites**:
