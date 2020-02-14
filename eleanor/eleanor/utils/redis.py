@@ -2,12 +2,12 @@ import redis
 
 
 try:
-    from eleanor.settings import REDIS_URL
+    from eleanor.settings import REDIS_URL, REDIS_PORT
 except ImportError:
-    from eleanor.default_settings import REDIS_URL
+    from eleanor.default_settings import REDIS_URL, REDIS_PORT
 
 
-pool = redis.ConnectionPool(host=REDIS_URL, port=6379, db=0)
+pool = redis.ConnectionPool(host=REDIS_URL, port=REDIS_PORT, db=0)
 rs = redis.Redis(
     connection_pool=pool,
     socket_timeout=2,

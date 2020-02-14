@@ -1,6 +1,7 @@
 from flask import Blueprint, current_app, make_response
 from flask_restful import Api, Resource
 from eleanor.utils.api_utils import json_response
+from eleanor.utils.rate_limits import ratelimit
 from eleanor.celery import tasks
 from eleanor.db import db
 from eleanor.utils.redis import ping, set_key
@@ -15,11 +16,12 @@ api = Api(echo_api, catch_all_404s=True)
 
 class Echo(Resource):
     method_decorators = [
-        json_response
+        json_response,
+        # ratelimit(limit=5, per=60)
     ]
 
     def get(self):
-        # current_app.logger.info("Calling Echo")
+        current_app.logger.info("Calling Echo")
         return {
             "Status": "Up and running..."
         }
@@ -57,6 +59,9 @@ health = HealthCheck(
 
 
 class HealthCheck(Resource):
+    method_decorators = [
+      # ratelimit(limit=10, per=60)
+    ]
 
     def get(self):
         message, status = health.check()

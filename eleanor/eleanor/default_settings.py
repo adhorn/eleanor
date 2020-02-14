@@ -19,6 +19,7 @@ ERROR_TO_FILE = True
 ERROR_LOG_NAME = 'logs/errors.log'
 
 REDIS_URL = 'rediscache'
+REDIS_PORT = '6379'
 
 CELERY_BROKER_URL = ['redis://redis:6379/0']
 CELERY_RESULT_BACKEND = 'redis://redis:6379'
@@ -58,3 +59,5 @@ SQLALCHEMY_POOL_TIMEOUT = 5
 
 
 DROP_BEFORE_CREATE = False
+
+ENABLE_RATE_LIMIT = True

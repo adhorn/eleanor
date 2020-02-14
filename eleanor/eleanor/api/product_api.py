@@ -10,6 +10,16 @@ product_api = Blueprint('product_api', __name__)
 api = Api(product_api, catch_all_404s=True)
 
 
+def product_exist(product_name):
+    if ProductModel.query.filter_by(
+        product_name=product_name
+    ).count() > 0:
+        return ProductModel.query.filter_by(
+            product_name=product_name
+        ).one()
+    return False
+
+
 class Product(Resource):
     method_decorators = [
         json_response
@@ -41,25 +51,28 @@ class Product(Resource):
             price=price
         )
 
-        product = ProductModel(
-            product_name=product_data["product_name"],
-            product_type=product_data["product_type"],
-            price=product_data["price"],
-        )
-        product_id = product.id
+        prod_exist = product_exist(product_name)
+        if prod_exist:
+            return {
+                "status": "success",
+                "product_id": prod_exist.id
+            }
+        else:
+            product = ProductModel(
+                product_name=product_data["product_name"],
+                product_type=product_data["product_type"],
+                price=product_data["price"],
+            )
+            product_id = product.id
 
-        db.session.add(product)
-        print("hello")
-        db.session.commit()
+            db.session.add(product)
+            print("hello")
+            db.session.commit()
 
-        return {
-            "status": "success",
-            "product_id": product_id
-        }
-        # return {
-        #     "status": "success",
-        #     "product_id": product.id
-        # }
+            return {
+                "status": "success",
+                "product_id": product_id
+            }
 
     def get(self, product_id):
         product = ProductModel.query.get(product_id)

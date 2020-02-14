@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "title": "What is the impact of an terminating the database master",
-    "description": "terminating the master database should not prevent the Application from running",
+    "description": "terminating the master database should not prevent the Application from running - it should go into read-only mode",
     "tags": ["db"],
     "steady-state-hypothesis": {
         "title": "Application responds",
@@ -14,7 +14,7 @@
                     "type": "http",
                     "timeout": 15,
                     "verify_tls": false,
-                    "url": "http://127.0.0.1:80/api/health"
+                    "url": "http://127.0.0.1:80/api/echo"
                 }
             }
         ]
@@ -51,22 +51,6 @@
                     "timeout": 2,
                     "verify_tls": false,
                     "url": "http://127.0.0.1:80/api/echo"
-            },
-           "pauses": {
-                "after": 1
-            }
-        },
-        {
-            "type": "probe",
-            "name": "read-health",
-            "provider": {
-                    "type": "http",
-                    "timeout": 5,
-                    "verify_tls": false,
-                    "url": "http://127.0.0.1:80/api/health"
-            },
-           "pauses": {
-                "after": 1
             }
         },
         {
@@ -83,12 +67,12 @@
         },
         {
             "type": "probe",
-            "name": "read-health",
+            "name": "read-echo",
             "provider": {
                     "type": "http",
                     "timeout": 2,
                     "verify_tls": false,
-                    "url": "http://127.0.0.1:80/api/health"
+                    "url": "http://127.0.0.1:80/api/echo"
             }
         }
     ],
@@ -100,6 +84,9 @@
                 "type": "process",
                 "path": "docker",
                 "arguments": "start $(cat pid.info)"
+            },
+            "pauses": {
+                "after": 10
             }
         }
     ]

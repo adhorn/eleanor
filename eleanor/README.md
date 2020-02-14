@@ -1,131 +1,69 @@
+# Eleanor
 
+Eleanor is an application developed in Python using the Flask framework. I use this application as demo for several of my talks on patterns for resiliency and chaos engineering. 
 
-**eleanor**:
+**Prerequisites**:
 
-Demo and code I use to go along my talk on patterns for building resilient applications on AWS. 
+To use and run Eleanor, you need to have docker installed locally. The application is built using docker-compose.
 
+You also need a python virtual environment in which you have installed all the `/eleanor_project/elanor/requirements.txt`
 
-To Get started, open a terminal and run - this will start all the docker containers found in docker-compose.yml
+For python virtual environments, I use `pyenv`
 
+```bash
+> pyenv virtualenv eleanor
+(eleanor) > pip install -r requirements.txt
+```
 
+To run the application, open a terminal in you local machine (Mac, Linux or Windows) and run `docker-compose up` this will built and run a set of  docker containers found in `/elanor_project/docker-compose.yml`.
+
+```bash
+> cd eleanor_project
 > docker-compose up 
+```
 
+Once the application is built and runs (this may take a while when you do it for the first time), you need to initialise the database. 
+To do that, open another terminal and run:  
 
-In another terminal, run - this is to create the database table. 
-
+```bash
 > docker-compose run eleanor-api python3 create_db.py
+```
 
+Now you can start testing a few of the available APIs
 
+**Testing the Health-Check APIs**
 
-then you add products:
+Health-Check APIs are located in `eleanor_project/eleanor/eleanor/api/echo_api.py`.
 
-➜  ~ curl -i -X POST -H "Content-Type: application/json" -d '{ "product_name": "Samsung TV multicolor", "product_type": "consumer good", "price": "564.00" }' http://127.0.0.1:80/api/product
-HTTP/1.1 200 OK
-Server: nginx/1.15.9
-Date: Mon, 18 Mar 2019 15:02:36 GMT
-Content-Type: application/json
-Content-Length: 71
-Connection: keep-alive
+**shallow health-check**
 
-{"product_id": "691d0791388243a3b00558c03c70768f", "status": "success"}%
+```bash
+(eleanor) ❯ http get http://127.0.0.1:80/api/echo
 
-In the screen log where you are executing docker-compose, you can monitor that the API is putting the data in the Master
-Logs look like that:
-
-eleanor-api_1    | --------------------------------------------------------------------------------
-eleanor-api_1    | DEBUG in __init__ [/opt/eleanor/eleanor/db/__init__.py:43]:
-eleanor-api_1    | Connecting -> MASTER
-eleanor-api_1    | --------------------------------------------------------------------------------
-
-
-
-
-You can then verify in the DBs using the mysql tool that the data is being replicated. 
-
-Master:
-
-MySQL  127.0.0.1:3306 ssl  mysql  SQL > select * from products;
-+----------------------------------+---------------------+------------------------+---------------+--------+
-| id                               | timestamp           | product_name           | product_type  | price  |
-+----------------------------------+---------------------+------------------------+---------------+--------+
-| 691d0791388243a3b00558c03c70768f | 2019-03-18 15:02:36 | Samsung TV multicolo9r | consumer good | 564.00 |
-+----------------------------------+---------------------+------------------------+---------------+--------+
-1 row in set (0.0034 sec)
-
-
-
-Slave:
-
-MySQL  127.0.0.1:3307 ssl  mysql  SQL > select * from products;
-+----------------------------------+---------------------+------------------------+---------------+--------+
-| id                               | timestamp           | product_name           | product_type  | price  |
-+----------------------------------+---------------------+------------------------+---------------+--------+
-| 691d0791388243a3b00558c03c70768f | 2019-03-18 15:02:36 | Samsung TV multicolo9r | consumer good | 564.00 |
-+----------------------------------+---------------------+------------------------+---------------+--------+
-1 row in set (0.0026 sec)
-
-
-
-
-Fetch a particular product using the GET product API:
-
-➜  ~ http get http://127.0.0.1:80/api/product/691d0791388243a3b00558c03c70768f
 HTTP/1.1 200 OK
 Connection: keep-alive
-Content-Length: 176
+Content-Length: 31
 Content-Type: application/json
-Date: Mon, 18 Mar 2019 15:02:54 GMT
+Date: Tue, 11 Feb 2020 14:07:45 GMT
 Server: nginx/1.15.9
 
 {
-    "id": "691d0791388243a3b00558c03c70768f",
-    "price": "564.00",
-    "product_name": "Samsung TV multicolo9r",
-    "product_type": "consumer good",
-    "timestamp": "2019-03-18 15:02:36.000"
+    "Status": "Up and running..."
 }
+```
 
+**Deep health check**
 
-In the screen log where you are executing docker-compose, you can monitor that the API is fetch the data from the Slave
-
-Logs look like that.
-eleanor-api_1    | --------------------------------------------------------------------------------
-eleanor-api_1    | DEBUG in __init__ [/opt/eleanor/eleanor/db/__init__.py:61]:
-eleanor-api_1    | Connecting -> SLAVE
-eleanor-api_1    | --------------------------------------------------------------------------------
-
-
-
-HealthChecks
--------------
-
-Shallow health check:
-
-➜  ~ http get http://127.0.0.1:80/api/echo
-HTTP/1.1 200 OK
-Connection: keep-alive
-Content-Length: 29
-Content-Type: application/json
-Date: Mon, 18 Mar 2019 15:11:26 GMT
-Server: nginx/1.15.9
-
-{
-    "Status": "Up and running!"
-}
-
-This will work regardless if any dependencies are up. Good for fast checks and recovering from outages.
-
-
-Deep health check:
 This health check supports Caching - hit it several times in a row, the content is served from the cache - preserving resources.
 
-
-➜  ~ http get http://127.0.0.1:80/api/health
+```bash
+(eleanor) ❯ http get http://127.0.0.1:80/api/health
 HTTP/1.1 200 OK
 Connection: keep-alive
-Content-Length: 924
-Content-Type: application/json
-Date: Mon, 18 Mar 2019 15:12:32 GMT
+Content-Length: 591
+Content-Type: text/html; charset=utf-8
+Date: Tue, 11 Feb 2020 14:24:36 GMT
+Retry-After: 30
 Server: nginx/1.15.9
 
 {
@@ -133,147 +71,192 @@ Server: nginx/1.15.9
     "results": [
         {
             "checker": "db_master_check",
-            "expires": 1552921967.4426348,
+            "expires": 1581431091.6889544,
             "output": "db master ok",
             "passed": true,
-            "timestamp": 1552921952.4426348
+            "timestamp": 1581431076.6889544
         },
         {
             "checker": "db_slave_check",
-            "expires": 1552921967.4513915,
+            "expires": 1581431091.714212,
             "output": "db slave ok",
             "passed": true,
-            "timestamp": 1552921952.4513915
+            "timestamp": 1581431076.714212
         },
         {
             "checker": "redis_check",
-            "expires": 1552921967.4776466,
+            "expires": 1581431091.7156985,
             "output": "redis ok",
             "passed": true,
-            "timestamp": 1552921952.4776466
+            "timestamp": 1581431076.7156985
         },
         {
             "checker": "task_check",
-            "expires": 1552921967.544384,
+            "expires": 1581431091.7904391,
             "output": "tasks ok",
             "passed": true,
-            "timestamp": 1552921952.544384
+            "timestamp": 1581431076.7904391
         }
     ],
     "status": "success"
 }
+```
+
+**Testing the Product APIs**
+
+To POST a product in the databases
+
+```bash
+(eleanor) ❯ http post http://127.0.0.1:80/api/product Content-Type:application/json product_type="consumer good" price="368.00" product_name="Apple Iphone "
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 71
+Content-Type: application/json
+Date: Thu, 13 Feb 2020 06:48:17 GMT
+Server: nginx/1.15.9
+
+{
+    "product_id": "b202c4cf32d54052b21eec254af141bd",
+    "status": "success"
+}
+
+```
+
+To GET a product from the databases
+
+```bash
+(eleanor) ❯ http get http://127.0.0.1:80/api/product/b202c4cf32d54052b21eec254af141bd
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 167
+Content-Type: application/json
+Date: Thu, 13 Feb 2020 06:49:36 GMT
+Server: nginx/1.15.9
+
+{
+    "id": "b202c4cf32d54052b21eec254af141bd",
+    "price": "368.00",
+    "product_name": "Apple Iphone ",
+    "product_type": "consumer good",
+    "timestamp": "2020-02-13 06:48:17.000"
+}
+
+```
+
+**Testing the Task APIs**
 
 
-Tasks:
-------
+Normal one. Uses asynchronous pattern to put a job (successful)
 
-Normal one - successful to demo the async queue pattern
-
-➜  ~ http PUT http://127.0.0.1:80/api/task
+```bash
+(eleanor) ❯ http put http://127.0.0.1:80/api/task
 HTTP/1.1 200 OK
 Connection: keep-alive
 Content-Length: 51
 Content-Type: application/json
-Date: Mon, 18 Mar 2019 15:14:06 GMT
+Date: Thu, 13 Feb 2020 06:52:31 GMT
 Server: nginx/1.15.9
 
 {
-    "Task ID": "0a09135f-d053-49e6-a114-43b7b51eec3e"
+    "Task ID": "54fc3014-296f-4a29-bd28-1bc64d05128d"
 }
+```
 
+to GET the result of the task
 
-Task with retries every 1s (dangerous)
+```bash
+(eleanor) ❯ http get http://127.0.0.1:80/api/task/54fc3014-296f-4a29-bd28-1bc64d05128d
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 59
+Content-Type: application/json
+Date: Thu, 13 Feb 2020 06:53:43 GMT
+Server: nginx/1.15.9
 
-➜  ~ http PUT http://127.0.0.1:80/api/taskretry
+{
+    "54fc3014-296f-4a29-bd28-1bc64d05128d": [
+        "SUCCESS",
+        "40"
+    ]
+}
+```
+
+PUT a Task with retries every 1s (dangerous)
+
+```bash
+(eleanor) ❯ http put http://127.0.0.1:80/api/taskretry
 HTTP/1.1 200 OK
 Connection: keep-alive
 Content-Length: 51
 Content-Type: application/json
-Date: Mon, 18 Mar 2019 15:14:33 GMT
+Date: Thu, 13 Feb 2020 06:56:22 GMT
 Server: nginx/1.15.9
 
 {
-    "Task ID": "7c3a55a0-dcb7-4e73-b481-d7f76f2b7b75"
+    "Task ID": "b2ed4368-523c-4d24-8007-6f9bc8aaf492"
 }
 
-eleanor-tasks_1  | [2019-03-18 15:18:01,874: INFO/MainProcess] Task eleanor.celery.tasks.add_retry[349e045f-cefe-48d6-96b7-6f914f818b88] retry: Retry in 1s: ValueError('empty range for randrange()',)
+```
+
+That example is a failed task to force retry, so if you get the result, it is failed. 
+
+```bash
+(eleanor) ❯ http get http://127.0.0.1:80/api/task/b2ed4368-523c-4d24-8007-6f9bc8aaf492
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 84
+Content-Type: application/json
+Date: Thu, 13 Feb 2020 06:56:49 GMT
+Server: nginx/1.15.9
+
+{
+    "b2ed4368-523c-4d24-8007-6f9bc8aaf492": [
+        "FAILURE",
+        "empty range for randrange()"
+    ]
+}
+```
+You can see in the logs that the task is retired every second.
+
+```bash
+eleanor-tasks_1  | [2020-02-13 15:18:01,874: INFO/MainProcess] Task eleanor.celery.tasks.add_retry[349e045f-cefe-48d6-96b7-6f914f818b88] retry: Retry in 1s: ValueError('empty range for randrange()',)
 ...
-eleanor-tasks_1  | [2019-03-18 15:18:01,874: INFO/MainProcess] Task eleanor.celery.tasks.add_retry[349e045f-cefe-48d6-96b7-6f914f818b88] retry: Retry in 1s: ValueError('empty range for randrange()',)
+eleanor-tasks_1  | [2020-02-13 15:18:01,874: INFO/MainProcess] Task eleanor.celery.tasks.add_retry[349e045f-cefe-48d6-96b7-6f914f818b88] retry: Retry in 1s: ValueError('empty range for randrange()',)
 ...
-eleanor-tasks_1  | [2019-03-18 15:18:01,874: INFO/MainProcess] Task eleanor.celery.tasks.add_retry[349e045f-cefe-48d6-96b7-6f914f818b88] retry: Retry in 1s: ValueError('empty range for randrange()',)
+eleanor-tasks_1  | [2020-02-13 15:18:01,874: INFO/MainProcess] Task eleanor.celery.tasks.add_retry[349e045f-cefe-48d6-96b7-6f914f818b88] retry: Retry in 1s: ValueError('empty range for randrange()',)
 ...
-eleanor-tasks_1  | [2019-03-18 15:18:01,874: INFO/MainProcess] Task eleanor.celery.tasks.add_retry[349e045f-cefe-48d6-96b7-6f914f818b88] retry: Retry in 1s: ValueError('empty range for randrange()',)
+eleanor-tasks_1  | [2020-02-13 15:18:01,874: INFO/MainProcess] Task eleanor.celery.tasks.add_retry[349e045f-cefe-48d6-96b7-6f914f818b88] retry: Retry in 1s: ValueError('empty range for randrange()',)
+```
 
 
+TO PUT a Task with exponantial backoff retries, with Jitter (recommended practice)
 
-
-Task with expo backoff retries (good)
-
-➜  ~ http PUT http://127.0.0.1:80/api/taskexpo
+```bash
+(eleanor) ❯ http put http://127.0.0.1:80/api/taskexpo
 HTTP/1.1 200 OK
 Connection: keep-alive
 Content-Length: 51
 Content-Type: application/json
-Date: Mon, 18 Mar 2019 15:15:03 GMT
+Date: Thu, 13 Feb 2020 07:00:12 GMT
 Server: nginx/1.15.9
 
 {
-    "Task ID": "bcb139ef-776e-43ac-b770-9a20c90080c1"
+    "Task ID": "a16067ec-5b33-4435-903f-a72f4b3db840"
 }
 
-eleanor-tasks_1  | [2019-02-21 10:44:42,911: INFO/MainProcess] Task eleanor.celery.tasks.add[26a1c4fd-db90-475a-a1d2-005ae176162b] retry: Retry in 1s: ValueError('empty range for randrange()',)
+```
+You can see in the logs that the task is retired with an expo backoff with Jitter
+
+```bash
+eleanor-tasks_1  | [2020-02-13 10:44:42,911: INFO/MainProcess] Task eleanor.celery.tasks.add[26a1c4fd-db90-475a-a1d2-005ae176162b] retry: Retry in 1s: ValueError('empty range for randrange()',)
 ...
-eleanor-tasks_1  | [2019-02-21 10:44:43,879: INFO/MainProcess] Task eleanor.celery.tasks.add[26a1c4fd-db90-475a-a1d2-005ae176162b] retry: Retry in 2s: ValueError('empty range for randrange()',)
+eleanor-tasks_1  | [2020-02-13 10:44:43,879: INFO/MainProcess] Task eleanor.celery.tasks.add[26a1c4fd-db90-475a-a1d2-005ae176162b] retry: Retry in 2s: ValueError('empty range for randrange()',)
 ...
-eleanor-tasks_1  | [2019-02-21 10:44:45,882: INFO/MainProcess] Task eleanor.celery.tasks.add[26a1c4fd-db90-475a-a1d2-005ae176162b] retry: Retry in 5s: ValueError('empty range for randrange()',)
+eleanor-tasks_1  | [2020-02-13 10:44:45,882: INFO/MainProcess] Task eleanor.celery.tasks.add[26a1c4fd-db90-475a-a1d2-005ae176162b] retry: Retry in 5s: ValueError('empty range for randrange()',)
 ...
-eleanor-tasks_1  | [2019-02-21 10:44:50,888: INFO/MainProcess] Task eleanor.celery.tasks.add[26a1c4fd-db90-475a-a1d2-005ae176162b] retry: Retry in 12s: ValueError('empty range for randrange()',)
+eleanor-tasks_1  | [2020-02-13 10:44:50,888: INFO/MainProcess] Task eleanor.celery.tasks.add[26a1c4fd-db90-475a-a1d2-005ae176162b] retry: Retry in 12s: ValueError('empty range for randrange()',)
 ...
-eleanor-tasks_1  | [2019-02-21 10:45:02,893: INFO/MainProcess] Task eleanor.celery.tasks.add[26a1c4fd-db90-475a-a1d2-005ae176162b] retry: Retry in 96s: ValueError('empty range for randrange()',)
+eleanor-tasks_1  | [2020-02-13 10:45:02,893: INFO/MainProcess] Task eleanor.celery.tasks.add[26a1c4fd-db90-475a-a1d2-005ae176162b] retry: Retry in 96s: ValueError('empty range for randrange()',)
+```
 
-
-
-Cool - all works. 
-
-Now lets break things.
-
-
-
-
-In another  terminal - do
-> docker ps
-
-this will return the list of running containers.
-
-➜  eleanor_project git:(master) docker ps
-CONTAINER ID        IMAGE                           COMMAND                  CREATED             STATUS                         PORTS                               NAMES
-e0bb430f4b01        eleanor_project_eleanor-api     "python3 create_db.py"   7 minutes ago       Restarting (0) 9 seconds ago                                       eleanor_project_eleanor-api_run_42debbde7393
-e6fe894a31c7        eleanor_project_eleanor-tasks   "/usr/local/bin/cele…"   7 minutes ago       Up 7 minutes                                                       eleanor_project_eleanor-tasks_1
-4f58ad0c5ffe        eleanor_project_eleanor-api     "/usr/local/bin/guni…"   7 minutes ago       Up 7 minutes                   0.0.0.0:80->5000/tcp                eleanor_project_eleanor-api_1
-d7d93539d3c4        adhorn/mysql:5.7-replica        "docker-entrypoint.s…"   7 minutes ago       Up 7 minutes                   33060/tcp, 0.0.0.0:3307->3306/tcp   slave
-9c622d88ab7b        adhorn/mysql:5.7-replica        "docker-entrypoint.s…"   7 minutes ago       Up 7 minutes                   0.0.0.0:3306->3306/tcp, 33060/tcp   master
-a545b12642cc        redis:latest                    "docker-entrypoint.s…"   7 minutes ago       Up 7 minutes                   6379/tcp                            eleanor_project_redis_1
-
-
-
-Try:
-
-1 - stop the master DB and try reading. This will work. 
-
-2 - stop the slave and try reading. This will work IF you make a healthcheck before reading. 
-The healthcheck will set env(MASTER) to FORCE if it fails to find the read replica. Here I am explaining the importance of healthcheck returning information that can help degradation.
-
-3 - stop Redis cache - healthcheck will fail. Run healthcheck several time, it will hit the Cache. Important to explain that healthchecks can be dangerous if you have too many probe pinging it - thus the importance of cache. 
-
-4 - stop elanor-task and run http PUT http://127.0.0.1:80/api/task - this will work and succeed once you start the worker again - preserving failures from the client. 
-
-
-
-
-
-
-
-
-
-
-
+If everything above works - all is fine!
