@@ -2,7 +2,8 @@
 local_settings.py
 SETUP.txt
 .DS_Store
-
+.vscode/
+*-back
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
