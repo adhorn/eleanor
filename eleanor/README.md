@@ -2,6 +2,8 @@
 
 Eleanor is an application developed in Python using the Flask framework. I use this application as demo for several of my talks on patterns for resiliency and chaos engineering. 
 
+![Eleanor Architecture](eleanor_arch.png)
+
 **Prerequisites**:
 
 To use and run Eleanor, you need to have docker installed locally. The application is built using docker-compose.
