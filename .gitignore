@@ -1,6 +1,5 @@
 .DS_Store
 .vscode/
-chaos/chaostoolkit.log
 docker-compose.yml-back
 chaos/chaostoolkit.log
 chaos/journal.json
